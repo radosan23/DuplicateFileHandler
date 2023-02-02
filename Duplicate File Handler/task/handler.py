@@ -55,11 +55,14 @@ class FileHandler:
             print('\n'.join(paths))
 
     def print_same_hash(self):
+        n = 1
         for size, hashes in self.file_hashes.items():
             print(f'\n{size} bytes')
             for hash_, paths in hashes.items():
                 print('Hash:', hash_)
-                print('\n'.join(paths))
+                for path in paths:
+                    print(f'{n}. {path}')
+                    n += 1
 
 
 def main():
