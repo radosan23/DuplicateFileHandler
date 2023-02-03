@@ -3,6 +3,13 @@ import os
 import sys
 
 
+class File:
+    def __init__(self, n, path, size):
+        self.n = n
+        self.path = path
+        self.size = size
+
+
 class FileHandler:
 
     def __init__(self, root_f, f_form, sort):
@@ -11,6 +18,7 @@ class FileHandler:
         self.sort = sort
         self.file_sizes = {}
         self.file_hashes = {}
+        self.to_delete = []
 
     @staticmethod
     def get_sort_opt():
@@ -23,12 +31,19 @@ class FileHandler:
             print('\nWrong option')
 
     @staticmethod
-    def get_input_duplicate():
+    def get_input_yesno(msg):
         while True:
-            answer = input('\nCheck for duplicates?\n')
+            answer = input('\n' + msg + '\n')
             if answer in ('yes', 'no'):
                 return True if answer == 'yes' else False
             print('Wrong option')
+
+    def get_f_numbers(self):
+        while True:
+            answer = input('\nEnter file numbers to delete:\n').split()
+            if answer and all(x.isdigit() and int(x) <= len(self.to_delete) for x in answer):
+                return [int(n) for n in answer]
+            print('\nWrong format')
 
     def sort_by_size(self):
         for root, dirs, files in os.walk(self.root_f):
@@ -62,7 +77,16 @@ class FileHandler:
                 print('Hash:', hash_)
                 for path in paths:
                     print(f'{n}. {path}')
+                    self.to_delete.append(File(n, path, size))
                     n += 1
+
+    def delete_files(self, numbers):
+        freed_space = 0
+        for file in self.to_delete:
+            if file.n in numbers:
+                os.remove(file.path)
+                freed_space += file.size
+        print(f'\nTotal freed up space: {freed_space} bytes')
 
 
 def main():
@@ -74,9 +98,11 @@ def main():
     handler = FileHandler(sys.argv[1], file_format, sort)
     handler.sort_by_size()
     handler.print_same_size()
-    if FileHandler.get_input_duplicate():
+    if FileHandler.get_input_yesno('Check for duplicates?'):
         handler.sort_by_hash()
         handler.print_same_hash()
+        if FileHandler.get_input_yesno('Delete files?'):
+            handler.delete_files(handler.get_f_numbers())
 
 
 if __name__ == '__main__':
